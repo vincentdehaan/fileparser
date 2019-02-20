@@ -10,9 +10,9 @@ case class BMPFile(
   gap2: FileSegment,
   iccColorProfile: FileSegment) extends File
 
-object BMPFile {
-  def unapply(chars: List[Char]): Option[BMPFile] = {
-    (chars(0).toString + chars(1).toString) match {
+object BMPFileExtractor {
+  def unapply(bytes: List[Byte]): Option[BMPFile] = {
+    (bytes(0).asInstanceOf[Char].toString + bytes(1).asInstanceOf[Char].toString) match {
       case "BM" => Some(
         BMPFile(
           bmpHeader = BMPHeader("BM"),
@@ -28,4 +28,4 @@ object BMPFile {
   }
 }
 
-case class BMPHeader(signature: String)
+case class BMPHeader(signature: String) extends FileSegment

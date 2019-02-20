@@ -1,19 +1,19 @@
 package nl.vindh.fileparser
 
-import scala.io.Source
+import java.nio.file.{Files, Paths}
 
 object FileParser {
   def main(args: Array[String]): Unit = {
-    val chars = Source.fromFile(args(0)).toList
+    val chars = Files.readAllBytes(Paths.get(args(0))).toList
 
     val parsed = parse(chars)
 
     println(parsed)
   }
 
-  def parse(chars: List[Char]): File = {
+  def parse(chars: List[Byte]): File = {
     chars match {
-      case f: BMPFile => f
+      case BMPFileExtractor(f) => f
       case _ => new File {}
     }
   }
