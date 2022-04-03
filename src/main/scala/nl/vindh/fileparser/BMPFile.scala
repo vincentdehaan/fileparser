@@ -4,10 +4,11 @@ import atto._
 import Atto._
 import atto.ParseResult.Done
 
-object BMPFile {
+object BMPFile extends ParseUtils {
   def parse(s: String) = {
     bmpParser.parse(s).done match {
       case Done(x, y) => y // TODO
+      case x => println(s"VINCENTS PARSING ERROR $x")
     }
 
   }
@@ -26,12 +27,6 @@ object BMPFile {
       }
     }.namedOpaque("BMPSignature")
 
-  // TODO: make this available for all parsers
-  def uint(n: Int): Parser[Int] =
-    manyN(n, anyChar).map(cs => cs.foldRight(0){
-      (nw, acc) => acc * 256 + nw.toInt
-  })
-
   val bmpHeaderParser: Parser[BMPHeader] =
     (for {
       sig <- bmpSignatureParser
@@ -48,7 +43,7 @@ object BMPFile {
     }
 
 
-  val bmpCoreHeaderParser: Parser[DibHeader] = // TODO: test against real-world files
+  val bmpCoreHeaderParser: Parser[BMPCoreHeader] = // TODO: test against real-world files
     (for {
       w <- uint(2).namedOpaque("width")
       h <- uint(2).namedOpaque("height")
@@ -56,9 +51,8 @@ object BMPFile {
       bits <- uint(2).namedOpaque("bits")
     } yield BMPCoreHeader(w, h, bits))
       .named("BMPCoreHeader")
-      .map(_.asInstanceOf[DibHeader]) // TODO: why is Parser not covariant?
 
-  val bmpInfoHeaderParser: Parser[DibHeader] =
+  val bmpInfoHeaderParser: Parser[BMPInfoHeader] =
     (for {
       width <- uint(4).namedOpaque("width")
       height <- uint(4).namedOpaque("height")
@@ -72,7 +66,6 @@ object BMPFile {
       important <- uint(4).namedOpaque("important colors")
     } yield BMPInfoHeader(width, height, bits, cm, size, hres, vres, colors, important))
       .named("BMPInfoHeader")
-      .map(_.asInstanceOf[DibHeader]) // TODO: why is Parser not covariant?
 
   val bmpParser: Parser[BMPFile] =
     (for {
@@ -84,7 +77,7 @@ object BMPFile {
 case class BMPFile(header: BMPHeader, dibHeader: DibHeader)
 
 // TODO: add this to some namespace
-trait BMPSignature extends Product with Serializable // TODO: why is this necessary to make bmpSignatureParser type-check?
+trait BMPSignature
 case object BMSignature extends BMPSignature
 case object BASignature extends BMPSignature
 case object CISignature extends BMPSignature
